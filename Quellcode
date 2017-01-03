@@ -1,0 +1,84 @@
+#include "stdafx.h"
+#include "time.h"
+#include "math.h"
+
+int spielbrett[6][7] =
+{
+	{ 0,0,0,0,0,0,0 },
+	{ 0,0,0,0,0,0,0 },
+	{ 0,0,0,0,0,0,0 },
+	{ 0,0,0,0,0,0,0 },
+	{ 0,0,0,0,0,0,0 },
+	{ 0,0,0,0,0,0,0 } };
+
+
+void Kontrolle(int control, int zustand) {
+	int i;
+	for (i = 0; i < 6; i++) {
+		if (spielbrett[control][i] == 0) {
+
+			if (zustand == 1) {
+				farbe2(control, i, GREEN);
+				spielbrett[control][i] = zustand;
+			}
+			if (zustand == 2) {
+				farbe2(control, i, RED);
+				spielbrett[control][i] = zustand;
+			}
+			i = 6;
+		}
+	}
+
+}
+
+
+void Steinsetzen() {
+	int feld, feld2, feld3;
+	int count = 0;
+	for (;;) {
+		char *a = abfragen();
+		if (strlen(a) > 0) {
+			printf("Angeklicktes Feld: %s\n", a);
+			count++;
+
+			if (a[0] == '#') {
+				sscanf_s(a, "# %d %d %d", &feld, &feld2, &feld3); //feld2=spalte feld3=zeile
+				if (count % 2 == 0) {
+					statusText("Spieler 1 ist am Zug!");
+					Kontrolle(feld2, 1);
+				}
+				else {
+					statusText("Spieler 2 ist am Zug!");
+					Kontrolle(feld2, 2);
+
+				}
+			}
+
+
+		}
+		else {
+			Sleep(100);
+		}
+
+	}
+
+}
+
+void Gewinnüberprüfung() {
+	int i;
+	int j;
+	int r;
+	for (
+
+
+
+int main()
+{
+	loeschen();
+	groesse(7, 6);
+	int x, y;
+
+	Steinsetzen();
+
+	return 0;
+}
