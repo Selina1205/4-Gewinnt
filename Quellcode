@@ -11,74 +11,225 @@ int spielbrett[6][7] =
 	{ 0,0,0,0,0,0,0 },
 	{ 0,0,0,0,0,0,0 } };
 
+void spielstop() {
+	loeschen();
+	int i, j;
+	for (i = 0; i < 7; i++) {
+		for (j = 0; j < 8; j++) {
+			spielbrett[i][j] = 0;
 
-void Kontrolle(int control, int zustand) {
+		}
+	}
+}
+
+int Gewinnüberprüfung(int feld2, int feld3, int spieler) {
+	char wintext[50];
+	int wincount = 0;
+	int j;
+	int i;
+	int winx = 0;
+	int windiagonal1 = 0;
+	int winy = 0;
+	int windiagonal2 = 0;
+	int randstart, dluro, drulo; //dluro = Diagonal links unten rechts oben || drulo = Diagonal rechts unten links oben
+
+	sprintf_s(wintext, "Super Spieler %d ! Du hast gewonnen!??", spieler);
+	dluro = abs(feld3 - feld2);
+	drulo = abs(feld3 + feld2);
+	randstart = 0;
+
+	//Horizontale und Vertikale Prüfung 
+	for (j = 0; j <= 7; j++) {
+		//Horizontale Prüfung
+		if (spielbrett[j][feld3] == spieler) {
+			winx++;
+			if (winx == 4) {
+				statusText(wintext);
+				spielstop();
+				return 0;
+			}
+		}
+		else {
+			winx = 0;
+		}
+		//Vertikale Prüfung
+		if (spielbrett[feld2][j] == spieler) {
+			winy++;
+			if (winy == 4) {
+				statusText(wintext);
+				spielstop();
+				return 0;
+			}
+		}
+		else {
+			winy = 0;
+		}
+	}
+	//Diagonale Prüfung
+	for (i = 0; i<6; i++) {
+		if (feld2 < feld3) {
+
+
+			if (spielbrett[randstart + i][dluro + i] == spieler) {
+				windiagonal1++;
+				if (windiagonal1 == 4) {
+					statusText(wintext);
+					spielstop();
+					return 0;
+				}
+			}
+			else {
+				windiagonal1 = 0;
+			}
+		}
+		else {
+			if ((dluro + i) == 6) {
+				break;
+			}
+			else {
+				if (spielbrett[dluro + i][randstart + i] == spieler) {
+					windiagonal1++;
+					if (windiagonal1 == 4) {
+						statusText(wintext);
+						spielstop();
+						return 0;
+					}
+				}
+				else {
+					windiagonal1 = 0;
+				}
+			}
+		}
+		if (feld3 < feld2 || feld3 < 3) {
+			if (spielbrett[randstart + i][drulo - i] == spieler) {
+				windiagonal2++;
+				if (windiagonal2 == 4) {
+					statusText(wintext);
+					spielstop();
+					return 0;
+				}
+			}
+			else {
+				windiagonal2 = 0;
+			}
+		}
+		else {
+			if (((drulo - i) < 0)) {
+				break;
+			}
+			else {
+				if (spielbrett[drulo - i][randstart + i] == spieler) {
+					windiagonal2++;
+					if (windiagonal2 == 4) {
+						statusText(wintext);
+						spielstop();
+						return 0;
+					}
+				}
+				else {
+					windiagonal2 = 0;
+				}
+			}
+		}
+	}
+
+
+	return 0;
+}
+void Spielerwechsel(int control, int zustand) {
 	int i;
 	for (i = 0; i < 6; i++) {
 		if (spielbrett[control][i] == 0) {
 
 			if (zustand == 1) {
 				farbe2(control, i, GREEN);
-				spielbrett[control][i] = zustand;
+				spielbrett[control][i] = 1;
+				Gewinnüberprüfung(control, i, 1);
 			}
 			if (zustand == 2) {
 				farbe2(control, i, RED);
-				spielbrett[control][i] = zustand;
+				spielbrett[control][i] = 2;
+				Gewinnüberprüfung(control, i, 2);
 			}
 			i = 6;
 		}
 	}
-
 }
 
+int spaltevoll(int testspalte) {
+	if (spielbrett[testspalte][5] != 0) {
+		statusText("spalte voll");
+		return 1;
+	}
+	return 0;
+}
+
+int arrayvoll() {
+	int i, j, k, vollcount = 0;
+
+	for (i = 0; i < 8; i++) {
+		if (spielbrett[i][5] != 0) {
+			vollcount++;
+		}
+		if (vollcount == 7) {
+			statusText("KEIN GEWINNER! NEUES SPIEL BEGINNT IN 3 SEK.");
+			Sleep(3000);
+			loeschen();
+			for (j = 0; j < 7; j++) {
+				for (k = 0; k < 8; k++) {
+					spielbrett[j][k] = 0;
+				}
+			}
+
+			statusText("Spieler 1 ist am Zug!");
+		}
+	}
+	return 0;
+}
 
 void Steinsetzen() {
-	int feld, feld2, feld3;
+	int feld2;
 	int count = 0;
 	for (;;) {
 		char *a = abfragen();
 		if (strlen(a) > 0) {
 			printf("Angeklicktes Feld: %s\n", a);
-			count++;
+
 
 			if (a[0] == '#') {
-				sscanf_s(a, "# %d %d %d", &feld, &feld2, &feld3); //feld2=spalte feld3=zeile
+				sscanf_s(a, "# %*d %d", &feld2);//feld2=spalte feld3=zeile
+				arrayvoll();
 				if (count % 2 == 0) {
 					statusText("Spieler 1 ist am Zug!");
-					Kontrolle(feld2, 1);
+
+					if (spaltevoll(feld2) == 0) {
+						Spielerwechsel(feld2, 1);
+						count++;
+					}
+
 				}
 				else {
 					statusText("Spieler 2 ist am Zug!");
-					Kontrolle(feld2, 2);
-
+					if (spaltevoll(feld2) == 0) {
+						Spielerwechsel(feld2, 2);
+						count++;
+					}
 				}
 			}
 
-
+			else {
+				Sleep(100);
+			}
 		}
-		else {
-			Sleep(100);
-		}
-
 	}
 
 }
-
-void Gewinnüberprüfung() {
-	int i;
-	int j;
-	int r;
-	for (
-
-
 
 int main()
 {
 	loeschen();
 	groesse(7, 6);
-	int x, y;
-
+	statusText("Spieler 1 ist am Zug!");
 	Steinsetzen();
-
 	return 0;
 }
